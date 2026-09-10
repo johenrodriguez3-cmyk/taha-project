@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Taha — Project Presentation</title>
+
+<!-- ============================================================
+  HOW TO EDIT (read me)
+  Everything you need to change lives in the ALBUM, TRACKS and
+  LETTER objects below this comment. Fill the fields, save the
+  file, done. Empty fields ("" ) are simply hidden on the page.
+  Each track's "audio" points to the song file in this folder.
+  LETTER.show = false removes the letter section completely.
+  LETTER.collapsed = false makes the letter always open.
+============================================================= -->
+<script>
+// ================= YOUR ALBUM INFO =================
+const ALBUM = {
+  artist: "Taha",
+  title: "Album Title",      // <-- still needed
+  year: "2026",
+  genre: "",                 // e.g. "R&B" / "Hip-Hop" — hidden if empty
+  coverImage: "cover.jpg",   // image URL or file in this folder; "" shows placeholder
+  tagline: "",               // one sentence about the project — hidden if empty
+  contact: "",               // booking/press email, optional
+  submittedBy: "Submitted by Gussacie (Management)"   // hidden if empty
+};
+
+// ================= YOUR TRACKS =================
+// Order here = order on the page. Available fields:
+//   title, feat (featuring), duration "3:45", writtenBy, producedBy,
+//   notes (paragraphs, use \n\n between), lyrics (optional excerpt),
+//   audio (file in this same folder)
+const TRACKS = [
+  { title: "Track 1", feat: "", duration: "3:22", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-01.mp3" },
+  { title: "Track 2", feat: "", duration: "4:32", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-02.mp3" },
+  { title: "Track 3", feat: "", duration: "2:47", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-03.m4a" },
+  { title: "Track 4", feat: "", duration: "2:56", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-04.m4a" },
+  { title: "Track 5", feat: "", duration: "2:11", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-05.m4a" }
+];
+
+// ================= THE LETTER =================
+const LETTER = {
+  show: true,          // false = remove the section entirely
+  collapsed: true,     // true = starts closed, opens on click
+  label: "Private submission letter",
+  heading: "Letter to Joyner",
+  opening: "Peace, Joyner.",
+  paragraphs: [
+    "We went into the studio and recorded seven tracks specifically so we could give you a real sense of our direction, work ethic, and potential. All of the material being submitted is currently unpublished.",
+    "I also want to provide some context about the day we met. We had a few drinks with ANT while celebrating my brother's freedom because he had just been released from parole that same day. That celebration is not representative of our everyday lifestyle. After serving more than 20 years in prison, our focus now is work, family, music, business, and building something legitimate. We do not use drugs, sell drugs, run the streets, or involve ourselves in situations that could jeopardize anyone working with us.",
+    "We respect your business, your career, your sound, and the way you approach music. We are local for the next three to five months and are prepared to work day and night, stay disciplined, take direction, and put everything we have into the right project. We would genuinely appreciate the opportunity to work with you and see what we can build together.",
+    "We understand your schedule and the realities of the industry. If we do not hear back within two weeks, we will respectfully understand that you may prefer not to move forward, and we will not take it personally. Either way, we hope you enjoy the music. We will continue to support you, remain fans of your work, and wish you continued success. It's all love and respect."
+  ],
+  signature: "Respectfully,",
+  signers: "Gussacie (Manager)  ·  Taha (Artist)",
+  pdf: "letter.pdf"
+};
+// ==================================================
+
+// ---- build the page from the data above (no need to edit below) ----
+function fmtTotal(secs){
+  const m = Math.floor(secs/60), s = secs%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+function toSec(d){ const p=d.split(":").map(Number); return p.length===2? p[0]*60+p[1] : p[0]; }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function nl2p(t){ return t.split(/\n\n+/).map(function(p){return "<p>"+esc(p)+"</p>";}).join(""); }
+
+document.addEventListener("DOMContentLoaded", function(){
+  document.title = ALBUM.title + " — " + ALBUM.artist;
+  document.getElementById("albumTitle").textContent = ALBUM.title;
+  document.getElementById("artistName").textContent = ALBUM.artist;
+  document.getElementById("artistName2").textContent = ALBUM.artist;
+  document.getElementById("metaGenre").textContent = ALBUM.genre;
+  if (!ALBUM.genre) { document.getElementById("metaGenre").style.display = "none"; }
+  if (ALBUM.contact) { document.getElementById("contact").textContent = ALBUM.contact; }
+  if (ALBUM.submittedBy) {
+    document.getElementById("submittedBy").textContent = ALBUM.submittedBy;
+  } else {
+    document.getElementById("submittedBy").style.display = "none";
+  }
+  if (ALBUM.tagline) {
+    document.getElementById("tagline").innerHTML = nl2p(ALBUM.tagline);
+  } else {
+    document.getElementById("tagline").style.display = "none";
+  }
+  document.getElementById("footYear").textContent = ALBUM.year;
+  renderLetter();
+
+  // cover image or typographic placeholder
+  const cv = document.getElementById("cover");
+  if (ALBUM.coverImage) {
+    cv.classList.add("has-img");
+    cv.innerHTML = '<img src="' + esc(ALBUM.coverImage) + '" alt="' + esc(ALBUM.title) + ' cover art">';
+  } else {
+    const initials = ALBUM.artist.split(/\s+/).map(function(w){return w[0];}).join("").slice(0,3).toUpperCase();
+    cv.innerHTML =
+      '<div class="ph-inner">' +
+        '<div class="ph-rule"></div>' +
+        '<div class="ph-title">' + esc(ALBUM.title.toUpperCase()) + '</div>' +
+        '<div class="ph-mid">' + esc(ALBUM.artist) + '</div>' +
+        '<div class="ph-rule"></div>' +
+        '<div class="ph-bot">' + esc(ALBUM.year) + '</div>' +
+        '<div class="ph-initials" aria-hidden="true">' + initials + '</div>' +
+      '</div>';
+  }
+
+  // meta stats
+  const total = TRACKS.reduce(function(a,t){ return a + toSec(t.duration||"0:00"); },0);
+  document.getElementById("countTracks").textContent = TRACKS.length;
+  document.getElementById("totalTime").textContent = fmtTotal(total);
+
+  // render track list
+  const list = document.getElementById("trackList");
+  TRACKS.forEach(function(t, i){
+    const num = String(i+1).padStart(2,"0");
+    const hasExtra = t.writtenBy || t.producedBy || t.notes || t.lyrics || t.audio;
+    const row = document.createElement("div");
+    row.className = "track";
+
+    const head = document.createElement("button");
+    head.type = "button";
+    head.className = "track-head";
+    head.setAttribute("aria-expanded","false");
+    if (hasExtra) head.classList.add("is-btn");
+
+    const featHtml = t.feat ? '<span class="feat">feat. ' + esc(t.feat) + '</span>' : "";
+
+    head.innerHTML =
+      '<span class="t-num">' + num + '</span>' +
+      '<span class="t-title">' + esc(t.title) + featHtml + '</span>' +
+      '<span class="t-dur">' + esc(t.duration) + '</span>' +
+      (hasExtra ? '<span class="t-chev" aria-hidden="true">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>'
+      : '<span class="t-spacer" aria-hidden="true"></span>');
+
+    const panel = document.createElement("div");
+    panel.className = "track-panel";
+    panel.innerHTML = '<div class="track-panel-inner">' + detailsHtml(t) + '</div>';
+
+    row.appendChild(head);
+    row.appendChild(panel);
+    list.appendChild(row);
+
+    if (!hasExtra) return;
+    head.addEventListener("click", function(){
+      const open = head.getAttribute("aria-expanded") === "true";
+      // close any other open track
+      list.querySelectorAll(".track-head[aria-expanded='true']").forEach(function(h){
+        h.setAttribute("aria-expanded","false");
+        h.parentElement.classList.remove("open");
+      });
+      if (!open) { head.setAttribute("aria-expanded","true"); row.classList.add("open"); }
+    });
+  });
+});
+
+// the letter section
+function renderLetter(){
+  const slot = document.getElementById("letterSlot");
+  if (!LETTER.show) { slot.remove(); return; }
+  const paras = LETTER.paragraphs.map(function(p){ return "<p>" + esc(p) + "</p>"; }).join("");
+  const body =
+    '<div class="letter-body">' +
+      '<p class="letter-open">' + esc(LETTER.opening) + '</p>' +
+      paras +
+      '<div class="letter-sig">' +
+        '<div class="sig-line">' + esc(LETTER.signature) + '</div>' +
+        '<div class="sig-names">' + esc(LETTER.signers) + '</div>' +
+      '</div>' +
+      (LETTER.pdf ? '<a class="letter-pdf" href="' + esc(LETTER.pdf) + '" target="_blank" rel="noopener">Open the PDF version of this letter</a>' : '') +
+    '</div>';
+
+  if (LETTER.collapsed) {
+    slot.innerHTML =
+      '<div class="letter-head">' +
+        '<span class="letter-label">' + esc(LETTER.label) + '</span>' +
+        '<h2>' + esc(LETTER.heading) + '</h2>' +
+      '</div>' +
+      '<button class="letter-toggle" type="button" aria-expanded="false">Read the letter</button>' +
+      '<div class="letter-panel"><div class="letter-panel-inner">' + body + '</div></div>';
+    const btn = slot.querySelector(".letter-toggle");
+    btn.addEventListener("click", function(){
+      const open = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", open ? "false" : "true");
+      slot.classList.toggle("open", !open);
+      btn.textContent = open ? "Read the letter" : "Close the letter";
+    });
+  } else {
+    slot.innerHTML =
+      '<div class="letter-head">' +
+        '<span class="letter-label">' + esc(LETTER.label) + '</span>' +
+        '<h2>' + esc(LETTER.heading) + '</h2>' +
+      '</div>' + body;
+  }
+}
+
+function detailsHtml(t){
+  let out = "";
+  const meta = [];
+  if (t.writtenBy)  meta.push('<div><span>Written by</span>'  + esc(t.writtenBy)  + '</div>');
+  if (t.producedBy) meta.push('<div><span>Produced by</span>' + esc(t.producedBy) + '</div>');
+  if (meta.length) out += '<div class="td-meta">' + meta.join("") + '</div>';
+  if (t.audio) out += '<audio controls preload="none" src="' + esc(t.audio) + '">Your browser does not support audio.</audio>';
+  if (t.notes)  out += '<div class="td-notes">' + nl2p(t.notes) + '</div>';
+  if (t.lyrics) out += '<div class="td-lyrics"><h4>Lyrics</h4>' + nl2p(t.lyrics) + '</div>';
+  return out;
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Manrope:wght@400..800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#12100c;
+    --bg2:#171410;
+    --line:#2b251c;
+    --ink:#f2ecdf;
+    --muted:#a79c8a;
+    --accent:#d9a45b;
+    --cream:#f4efe2;
+    --serif:"Fraunces", Georgia, serif;
+    --sans:"Manrope", "Segoe UI", sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.6;
+  }
+  .wrap{ max-width:1060px; margin:0 auto; padding:0 28px; }
+
+  /* ---------- masthead ---------- */
+  .mast{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:26px 0 8px;
+    font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
+  }
+  .mast .tag{ color:var(--accent); }
+
+  /* ---------- hero ---------- */
+  .hero{
+    display:grid; grid-template-columns:minmax(0,420px) 1fr;
+    gap:64px; align-items:center;
+    padding:56px 0 72px;
+  }
+  .cover{ position:relative; aspect-ratio:1/1; width:100%; background:var(--cream); color:#171310; box-shadow:0 30px 60px rgba(0,0,0,.45); }
+  .cover.has-img{ aspect-ratio:auto; background:none; width:min(100%,420px); justify-self:center; }
+  .cover.has-img img{ width:100%; height:auto; display:block; }
+  .ph-inner{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-between; padding:9%; }
+  .ph-inner .ph-title{ font-family:var(--serif); font-weight:600; font-size:clamp(1.6rem, 4.6vw, 2.5rem); line-height:1.04; letter-spacing:.01em; }
+  .ph-mid{ font-size:12px; letter-spacing:.22em; text-transform:uppercase; margin-top:auto; }
+  .ph-bot{ font-size:11px; letter-spacing:.2em; color:#7a7262; margin-top:14px; }
+  .ph-rule{ border-top:1px solid #171310; opacity:.35; }
+  .ph-initials{ position:absolute; right:6%; bottom:4%; font-family:var(--serif); font-size:clamp(2.4rem,7vw,4rem); line-height:1; color:#171310; opacity:.12; font-weight:800; }
+  .ph-rule + .ph-title{ margin-top:10px; }
+
+  .hero-info .kicker{
+    font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--accent);
+    display:flex; align-items:center; gap:14px; margin-bottom:22px;
+  }
+  .hero-info .kicker::before{ content:""; width:34px; height:1px; background:var(--accent); }
+  .hero h1{
+    font-family:var(--serif); font-weight:520; font-size:clamp(2.6rem, 6vw, 4.2rem);
+    line-height:1.02; letter-spacing:-.01em; margin-bottom:6px;
+  }
+  .hero .artist-line{ font-size:clamp(1rem,2vw,1.2rem); color:var(--muted); font-weight:500; }
+  .hero .artist-line b{ color:var(--ink); font-weight:600; }
+  .meta-row{
+    display:flex; flex-wrap:wrap; gap:8px 0; margin:26px 0 0;
+    font-size:12px; letter-spacing:.06em;
+  }
+  .meta-row span{
+    padding:7px 14px; border:1px solid var(--line); border-radius:999px; color:var(--muted);
+  }
+  .meta-row span b{ color:var(--ink); font-weight:600; }
+  .hero-info .credit{ margin-top:20px; font-size:12px; letter-spacing:.08em; color:var(--muted); }
+  #tagline{ margin-top:26px; max-width:46ch; color:var(--muted); font-size:15px; }
+  #tagline p + p{ margin-top:10px; }
+  .hero-info .contact{ margin-top:22px; font-size:13px; letter-spacing:.1em; }
+  .hero-info .contact a{ color:var(--accent); text-decoration:none; }
+  .hero-info .contact a:hover{ text-decoration:underline; }
+
+  /* ---------- tracks ---------- */
+  .tracks-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    border-top:1px solid var(--line); padding-top:22px; margin-bottom:10px;
+  }
+  .tracks-head h2{ font-family:var(--serif); font-weight:550; font-size:clamp(1.5rem,3vw,2rem); }
+  .tracks-head .hint{ font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+
+  .track{ border-bottom:1px solid var(--line); }
+  .track-head{
+    width:100%; background:none; border:0; cursor:default;
+    display:flex; align-items:center; gap:22px;
+    padding:20px 6px; text-align:left; color:var(--ink);
+    font-family:var(--sans); font-size:16px;
+  }
+  .track-head.is-btn{ cursor:pointer; }
+  .track-head:hover .t-title{ color:var(--accent); }
+  .track-head .t-num{ font-size:12px; letter-spacing:.1em; color:var(--muted); font-variant-numeric:tabular-nums; width:34px; flex:none; }
+  .track-head .t-title{ flex:1; font-weight:600; transition:color .18s; }
+  .track-head .feat{ font-weight:400; color:var(--muted); font-size:14px; margin-left:8px; }
+  .track-head .t-dur{ color:var(--muted); font-variant-numeric:tabular-nums; font-size:14px; }
+  .track-head .t-chev{ color:var(--muted); transition:transform .3s cubic-bezier(.4,0,.2,1), color .2s; flex:none; }
+  .track.open .track-head .t-chev{ transform:rotate(180deg); color:var(--accent); }
+  .t-spacer{ width:14px; flex:none; }
+
+  /* expandable panel — grid-rows trick gives smooth height animation */
+  .track-panel{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .38s cubic-bezier(.4,0,.2,1); }
+  .track.open .track-panel{ grid-template-rows:1fr; }
+  .track-panel-inner{ overflow:hidden; min-height:0; }
+  .td-meta{ display:grid; grid-template-columns:1fr 1fr; gap:10px 30px; padding:4px 62px 18px; max-width:560px; }
+  .td-meta div{ display:flex; justify-content:space-between; gap:14px; border-bottom:1px dashed var(--line); padding-bottom:6px; font-size:13.5px; }
+  .td-meta span{ color:var(--muted); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; flex:none; padding-top:2px; }
+  .td-notes, .td-lyrics{ padding:0 62px 24px; max-width:62ch; color:var(--muted); font-size:14.5px; }
+  .td-notes p + p{ margin-top:10px; }
+  .td-lyrics h4{ color:var(--ink); font-family:var(--serif); font-weight:600; font-style:italic; font-size:15px; margin-bottom:8px; letter-spacing:.02em; }
+  .track-panel-inner audio{ width:100%; max-width:340px; margin:0 0 18px 62px; height:38px; display:block; }
+
+  /* ---------- letter ---------- */
+  .letter{ border-top:1px solid var(--line); margin-top:34px; padding-top:24px; }
+  .letter-label{ display:block; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .letter h2{ font-family:var(--serif); font-weight:550; font-size:clamp(1.5rem,3vw,2rem); }
+  .letter-toggle{
+    margin-top:16px; background:none; border:1px solid var(--line); color:var(--ink);
+    font-family:var(--sans); font-size:13px; letter-spacing:.06em;
+    padding:10px 20px; border-radius:999px; cursor:pointer;
+    transition:border-color .2s, color .2s;
+  }
+  .letter-toggle:hover{ border-color:var(--accent); color:var(--accent); }
+  .letter-panel{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .42s cubic-bezier(.4,0,.2,1); }
+  .letter.open .letter-panel{ grid-template-rows:1fr; }
+  .letter-panel-inner{ overflow:hidden; min-height:0; }
+  .letter-body{ max-width:64ch; font-family:var(--serif); font-size:16.5px; line-height:1.78; color:#e7e0d2; padding:22px 0 8px; }
+  .letter-body p + p{ margin-top:15px; }
+  .letter-open{ font-size:1.18em; font-style:italic; color:var(--ink); }
+  .letter-sig{ margin-top:26px; }
+  .sig-line{ color:var(--muted); font-family:var(--sans); font-size:13px; letter-spacing:.1em; }
+  .sig-names{ font-family:var(--serif); font-size:17.5px; color:var(--ink); margin-top:8px; }
+  .letter-pdf{
+    display:inline-block; margin-top:24px; font-size:13px; color:var(--accent);
+    text-decoration:none; border-bottom:1px solid rgba(217,164,91,.45); padding-bottom:2px;
+  }
+  .letter-pdf:hover{ border-color:var(--accent); }
+
+  /* ---------- footer ---------- */
+  footer{ padding:64px 0 46px; color:var(--muted); font-size:12px; letter-spacing:.08em; }
+  footer .ft-line{ border-top:1px solid var(--line); padding-top:18px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  footer b{ color:var(--ink); font-weight:600; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:760px){
+    .wrap{ padding:0 20px; }
+    .hero{ grid-template-columns:1fr; gap:40px; padding:40px 0 56px; }
+    .cover{ max-width:400px; }
+    .td-meta{ grid-template-columns:1fr; padding:2px 0 14px; }
+    .td-notes, .td-lyrics{ padding:0 0 22px; }
+    .track-panel-inner audio{ margin-left:0; }
+    .track-head{ gap:14px; padding:18px 2px; }
+    .letter-body{ font-size:16px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ transition:none !important; animation:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="tag">Album <b>·</b> Presentation</div>
+    <div class="tag">Private press link</div>
+  </header>
+
+  <section class="hero">
+    <div id="cover" class="cover" role="img" aria-label="Album cover"></div>
+    <div class="hero-info">
+      <div class="kicker" id="artistName">Artist</div>
+      <h1 id="albumTitle">Album Title</h1>
+      <p class="artist-line">by <b id="artistName2">Artist</b></p>
+      <div id="tagline"></div>
+      <div class="meta-row">
+        <span id="metaGenre"></span>
+        <span><b id="countTracks">–</b> tracks</span>
+        <span><b id="totalTime">–</b> total</span>
+      </div>
+      <div class="credit" id="submittedBy"></div>
+      <div class="contact"><a id="contact" href="#"></a></div>
+    </div>
+  </section>
+
+  <section class="tracks">
+    <div class="tracks-head">
+      <h2>Tracks</h2>
+      <span class="hint">Click a track to play &amp; see details</span>
+    </div>
+    <div id="trackList"></div>
+  </section>
+
+  <section class="letter" id="letterSlot"></section>
+
+  <footer>
+    <div class="ft-line">
+      <span>© <span id="footYear">2026</span> <b id="artistName3">Artist</b></span>
+      <span>All rights reserved · Unpublished material</span>
+    </div>
+  </footer>
+
+</div>
+<script>
+  document.getElementById("artistName3").textContent = ALBUM.artist;
+  if (!ALBUM.contact) { document.getElementById("contact").remove(); }
+</script>
+</body>
+</html>
