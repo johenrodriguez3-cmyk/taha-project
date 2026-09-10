@@ -68,7 +68,18 @@ const LETTER = {
   signers: "Gussacie (Manager)  ·  Taha (Artist)",
   pdf: "letter.pdf"
 };
-// ==================================================
+
+// ================= CONTACT (shows under the letter) =================
+const CONTACT = {
+  show: true,                 // false = remove the section entirely
+  label: "Contact",
+  heading: "Contact Me:",
+  name: "Gussacie (Management)",
+  phone: "1-978-799-8154",
+  email: "gussacieinc@icloud.com",
+  note: ""                    // optional line under the details
+};
+// ====================================================================
 
 // ================= SONG ENERGY DATA (generated) =================
 // Each string is 10 readings per second of that song's own loudness (0-9),
@@ -104,6 +115,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   document.getElementById("footYear").textContent = ALBUM.year;
   renderLetter();
+  renderContact();
   initBackground();
 
   // cover image or typographic placeholder
@@ -227,6 +239,28 @@ function renderLetter(){
         '<h2>' + esc(LETTER.heading) + '</h2>' +
       '</div>' + body;
   }
+}
+
+// the contact section (sits directly under the letter)
+function renderContact(){
+  const slot = document.getElementById("contactSlot");
+  if (!slot) return;
+  if (!CONTACT.show) { slot.remove(); return; }
+  const rows = [];
+  if (CONTACT.name) rows.push('<div class="cb-name">' + esc(CONTACT.name) + '</div>');
+  if (CONTACT.phone) rows.push(
+    '<a class="cb-row" href="tel:' + esc(CONTACT.phone.replace(/[^0-9+]/g, "")) + '">' +
+      '<span class="cb-k">Phone</span><span class="cb-v">' + esc(CONTACT.phone) + '</span></a>');
+  if (CONTACT.email) rows.push(
+    '<a class="cb-row" href="mailto:' + esc(CONTACT.email) + '">' +
+      '<span class="cb-k">Email</span><span class="cb-v">' + esc(CONTACT.email) + '</span></a>');
+  if (CONTACT.note) rows.push('<p class="cb-note">' + esc(CONTACT.note) + '</p>');
+  slot.innerHTML =
+    '<div class="contact-head">' +
+      '<span class="contact-label">' + esc(CONTACT.label) + '</span>' +
+      '<h2>' + esc(CONTACT.heading) + '</h2>' +
+    '</div>' +
+    '<div class="contact-body">' + rows.join("") + '</div>';
 }
 
 // ---- dynamic background: every track carries its own colour mood ----
@@ -432,6 +466,18 @@ function detailsHtml(t){
   .td-lyrics h4{ color:var(--ink); font-family:var(--serif); font-weight:600; font-style:italic; font-size:15px; margin-bottom:8px; letter-spacing:.02em; }
   .track-panel-inner audio{ width:100%; max-width:340px; margin:0 0 18px 62px; height:38px; display:block; }
 
+  /* ---------- contact ---------- */
+  .contact-block{ border-top:1px solid var(--line); margin-top:34px; padding-top:24px; }
+  .contact-label{ display:block; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .contact-block h2{ font-family:var(--serif); font-weight:550; font-size:clamp(1.5rem,3vw,2rem); }
+  .contact-body{ margin-top:20px; display:flex; flex-direction:column; gap:11px; max-width:64ch; }
+  .cb-name{ font-family:var(--serif); font-size:16.5px; color:#e7e0d2; }
+  .cb-row{ display:flex; align-items:baseline; gap:14px; text-decoration:none; color:#e7e0d2; width:fit-content; }
+  .cb-row:hover .cb-v{ color:var(--accent); text-decoration:underline; }
+  .cb-k{ flex:none; width:58px; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); }
+  .cb-v{ font-size:16.5px; letter-spacing:.03em; }
+  .cb-note{ font-size:13px; color:var(--muted); letter-spacing:.04em; margin-top:4px; }
+
   /* ---------- letter ---------- */
   .letter{ border-top:1px solid var(--line); margin-top:34px; padding-top:24px; }
   .letter-label{ display:block; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
@@ -528,6 +574,8 @@ function detailsHtml(t){
   </section>
 
   <section class="letter" id="letterSlot"></section>
+
+  <section class="contact-block" id="contactSlot"></section>
 
   <footer>
     <div class="ft-line">
