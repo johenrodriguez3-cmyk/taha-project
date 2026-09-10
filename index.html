@@ -72,8 +72,11 @@ const LETTER = {
 // ================= CONTACT (shows under the letter) =================
 const CONTACT = {
   show: true,                 // false = remove the section entirely
+  collapsed: true,            // true = starts closed, drops open on click
   label: "Contact",
   heading: "Contact Me:",
+  cta: "Contact me",          // text on the closed button
+  ctaOpen: "Close",           // text on the open button
   name: "Gussacie (Management)",
   phone: "1-978-799-8154",
   email: "gussacieinc@icloud.com",
@@ -205,6 +208,7 @@ document.addEventListener("DOMContentLoaded", function(){
 function renderLetter(){
   const slot = document.getElementById("letterSlot");
   if (!LETTER.show) { slot.remove(); return; }
+  const caret = '<svg class="caret" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const paras = LETTER.paragraphs.map(function(p){ return "<p>" + esc(p) + "</p>"; }).join("");
   const body =
     '<div class="letter-body">' +
@@ -223,14 +227,15 @@ function renderLetter(){
         '<span class="letter-label">' + esc(LETTER.label) + '</span>' +
         '<h2>' + esc(LETTER.heading) + '</h2>' +
       '</div>' +
-      '<button class="letter-toggle" type="button" aria-expanded="false">Read the letter</button>' +
+      '<button class="letter-toggle" type="button" aria-expanded="false"><span class="ct-label">Read the letter</span>' + caret + '</button>' +
       '<div class="letter-panel"><div class="letter-panel-inner">' + body + '</div></div>';
     const btn = slot.querySelector(".letter-toggle");
+    const lbl = btn.querySelector(".ct-label");
     btn.addEventListener("click", function(){
       const open = btn.getAttribute("aria-expanded") === "true";
       btn.setAttribute("aria-expanded", open ? "false" : "true");
       slot.classList.toggle("open", !open);
-      btn.textContent = open ? "Read the letter" : "Close the letter";
+      lbl.textContent = open ? "Read the letter" : "Close the letter";
     });
   } else {
     slot.innerHTML =
@@ -241,7 +246,7 @@ function renderLetter(){
   }
 }
 
-// the contact section (sits directly under the letter)
+// the contact section (sits directly under the letter, drops open on click)
 function renderContact(){
   const slot = document.getElementById("contactSlot");
   if (!slot) return;
@@ -255,12 +260,31 @@ function renderContact(){
     '<a class="cb-row" href="mailto:' + esc(CONTACT.email) + '">' +
       '<span class="cb-k">Email</span><span class="cb-v">' + esc(CONTACT.email) + '</span></a>');
   if (CONTACT.note) rows.push('<p class="cb-note">' + esc(CONTACT.note) + '</p>');
-  slot.innerHTML =
+  const body = '<div class="contact-body">' + rows.join("") + '</div>';
+  const head =
     '<div class="contact-head">' +
       '<span class="contact-label">' + esc(CONTACT.label) + '</span>' +
       '<h2>' + esc(CONTACT.heading) + '</h2>' +
-    '</div>' +
-    '<div class="contact-body">' + rows.join("") + '</div>';
+    '</div>';
+  const caret = '<svg class="caret" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  if (CONTACT.collapsed) {
+    slot.innerHTML = head +
+      '<button class="contact-toggle" type="button" aria-expanded="false" aria-controls="contactPanel">' +
+        '<span class="ct-label">' + esc(CONTACT.cta) + '</span>' + caret +
+      '</button>' +
+      '<div class="contact-panel" id="contactPanel"><div class="contact-panel-inner">' + body + '</div></div>';
+    const btn = slot.querySelector(".contact-toggle");
+    const lbl = btn.querySelector(".ct-label");
+    btn.addEventListener("click", function(){
+      const open = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", open ? "false" : "true");
+      slot.classList.toggle("open", !open);
+      lbl.textContent = open ? CONTACT.cta : (CONTACT.ctaOpen || CONTACT.cta);
+    });
+  } else {
+    slot.innerHTML = head + body;
+  }
 }
 
 // ---- dynamic background: every track carries its own colour mood ----
@@ -470,25 +494,37 @@ function detailsHtml(t){
   .contact-block{ border-top:1px solid var(--line); margin-top:34px; padding-top:24px; }
   .contact-label{ display:block; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
   .contact-block h2{ font-family:var(--serif); font-weight:550; font-size:clamp(1.5rem,3vw,2rem); }
-  .contact-body{ margin-top:20px; display:flex; flex-direction:column; gap:11px; max-width:64ch; }
+  .contact-body{ margin-top:2px; display:flex; flex-direction:column; gap:11px; max-width:64ch; }
   .cb-name{ font-family:var(--serif); font-size:16.5px; color:#e7e0d2; }
-  .cb-row{ display:flex; align-items:baseline; gap:14px; text-decoration:none; color:#e7e0d2; width:fit-content; }
-  .cb-row:hover .cb-v{ color:var(--accent); text-decoration:underline; }
-  .cb-k{ flex:none; width:58px; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); }
-  .cb-v{ font-size:16.5px; letter-spacing:.03em; }
+  .cb-row{ display:flex; align-items:baseline; gap:14px; text-decoration:none; color:#e7e0d2; width:fit-content;
+    padding:7px 12px 7px 0; border-radius:8px; transition:background .22s, padding-left .22s; }
+  .cb-row:hover{ background:rgba(255,255,255,.045); padding-left:10px; }
+  .cb-row:hover .cb-v{ color:var(--accent); }
+  .cb-k{ flex:none; width:58px; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); transition:color .22s; }
+  .cb-row:hover .cb-k{ color:var(--accent); }
+  .cb-v{ font-size:16.5px; letter-spacing:.03em; transition:color .22s; }
   .cb-note{ font-size:13px; color:var(--muted); letter-spacing:.04em; margin-top:4px; }
+  .contact-panel{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .42s cubic-bezier(.4,0,.2,1); }
+  .contact-block.open .contact-panel{ grid-template-rows:1fr; }
+  .contact-panel-inner{ overflow:hidden; min-height:0; }
+  .contact-panel .contact-body{ padding:20px 0 6px; }
+  .contact-toggle .caret{ width:15px; height:15px; margin-left:-2px; transition:transform .32s cubic-bezier(.4,0,.2,1); }
+  .contact-block.open .contact-toggle .caret{ transform:rotate(180deg); }
 
   /* ---------- letter ---------- */
   .letter{ border-top:1px solid var(--line); margin-top:34px; padding-top:24px; }
   .letter-label{ display:block; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
   .letter h2{ font-family:var(--serif); font-weight:550; font-size:clamp(1.5rem,3vw,2rem); }
-  .letter-toggle{
+  .letter-toggle, .contact-toggle{
     margin-top:16px; background:none; border:1px solid var(--line); color:var(--ink);
     font-family:var(--sans); font-size:13px; letter-spacing:.06em;
     padding:10px 20px; border-radius:999px; cursor:pointer;
-    transition:border-color .2s, color .2s;
+    display:inline-flex; align-items:center; gap:9px;
+    transition:border-color .2s, color .2s, background .2s;
   }
-  .letter-toggle:hover{ border-color:var(--accent); color:var(--accent); }
+  .letter-toggle:hover, .contact-toggle:hover{ border-color:var(--accent); color:var(--accent); background:rgba(217,164,91,.07); }
+  .letter-toggle .caret{ width:15px; height:15px; transition:transform .32s cubic-bezier(.4,0,.2,1); }
+  .letter.open .letter-toggle .caret{ transform:rotate(180deg); }
   .letter-panel{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .42s cubic-bezier(.4,0,.2,1); }
   .letter.open .letter-panel{ grid-template-rows:1fr; }
   .letter-panel-inner{ overflow:hidden; min-height:0; }
