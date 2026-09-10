@@ -40,15 +40,15 @@ const ALBUM = {
 // Order here = order on the page. Available fields:
 //   title, feat (featuring), duration "3:45", writtenBy, producedBy,
 //   notes (paragraphs, use \n\n between), lyrics (optional excerpt),
-//   audio (file in this same folder)
+//   audio (file in this same folder), theme (#hex colour mood for the background)
 const TRACKS = [
-  { title: "Track 1", feat: "", duration: "3:22", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-01.mp3" },
-  { title: "Track 2", feat: "", duration: "4:32", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-02.mp3" },
-  { title: "Track 3", feat: "", duration: "2:47", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-03.m4a" },
-  { title: "Track 4", feat: "", duration: "2:56", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-04.m4a" },
-  { title: "Track 5", feat: "", duration: "2:11", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-05.m4a" },
-  { title: "Track 6", feat: "", duration: "3:05", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-06.m4a" },
-  { title: "Track 7", feat: "", duration: "4:04", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-07.m4a" }
+  { title: "Track 1", feat: "", duration: "3:22", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-01.mp3", theme: "#b96a35" },
+  { title: "Track 2", feat: "", duration: "4:32", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-02.mp3", theme: "#3d6ea8" },
+  { title: "Track 3", feat: "", duration: "2:47", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-03.m4a", theme: "#2f8f86" },
+  { title: "Track 4", feat: "", duration: "2:56", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-04.m4a", theme: "#7a5cc4" },
+  { title: "Track 5", feat: "", duration: "2:11", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-05.m4a", theme: "#b04a7a" },
+  { title: "Track 6", feat: "", duration: "3:05", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-06.m4a", theme: "#7d8f3f" },
+  { title: "Track 7", feat: "", duration: "4:04", writtenBy: "", producedBy: "", notes: "", lyrics: "", audio: "track-07.m4a", theme: "#c9a03a" }
 ];
 
 // ================= THE LETTER =================
@@ -99,6 +99,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   document.getElementById("footYear").textContent = ALBUM.year;
   renderLetter();
+  initBackground();
 
   // cover image or typographic placeholder
   const cv = document.getElementById("cover");
@@ -155,6 +156,13 @@ document.addEventListener("DOMContentLoaded", function(){
     row.appendChild(panel);
     list.appendChild(row);
 
+    const au = panel.querySelector("audio");
+    if (au) {
+      au.addEventListener("play",  function(){ setPlaying(true); });
+      au.addEventListener("pause", function(){ setPlaying(false); });
+      au.addEventListener("ended", function(){ setPlaying(false); });
+    }
+
     if (!hasExtra) return;
     head.addEventListener("click", function(){
       const open = head.getAttribute("aria-expanded") === "true";
@@ -163,7 +171,15 @@ document.addEventListener("DOMContentLoaded", function(){
         h.setAttribute("aria-expanded","false");
         h.parentElement.classList.remove("open");
       });
-      if (!open) { head.setAttribute("aria-expanded","true"); row.classList.add("open"); }
+      // one song at a time
+      list.querySelectorAll("audio").forEach(function(a){ if (!row.contains(a)) a.pause(); });
+      if (!open) {
+        head.setAttribute("aria-expanded","true");
+        row.classList.add("open");
+        applyTheme(t.theme);
+      } else {
+        applyTheme(null);
+      }
     });
   });
 });
@@ -206,6 +222,40 @@ function renderLetter(){
         '<h2>' + esc(LETTER.heading) + '</h2>' +
       '</div>' + body;
   }
+}
+
+// ---- dynamic background: every track carries its own colour mood ----
+const DEFAULT_THEME = "#7a5a2e";
+let bgFront = null, bgBack = null;
+function hexToRgba(hex, a){
+  let h = String(hex || "").replace("#", "").trim();
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  if (h.length !== 6 || /[^0-9a-f]/i.test(h)) h = "7a5a2e";
+  const n = parseInt(h, 16);
+  return "rgba(" + ((n>>16)&255) + "," + ((n>>8)&255) + "," + (n&255) + "," + a + ")";
+}
+function paintLayer(el, hex){
+  el.style.backgroundImage =
+    "radial-gradient(58% 52% at 16% 10%, " + hexToRgba(hex, 0.50) + " 0%, rgba(0,0,0,0) 62%)," +
+    "radial-gradient(66% 58% at 84% 86%, " + hexToRgba(hex, 0.34) + " 0%, rgba(0,0,0,0) 66%)";
+}
+function initBackground(){
+  const a = document.getElementById("bgA"), b = document.getElementById("bgB");
+  if (!a || !b) return;
+  bgFront = a; bgBack = b;
+  paintLayer(a, DEFAULT_THEME);
+  a.style.opacity = 1;
+}
+function applyTheme(hex){
+  if (!bgFront) return;
+  paintLayer(bgBack, hex || DEFAULT_THEME);
+  bgBack.style.opacity = 1;
+  bgFront.style.opacity = 0;
+  const t = bgFront; bgFront = bgBack; bgBack = t;
+}
+function setPlaying(on){
+  const bg = document.querySelector(".bg");
+  if (bg) bg.classList.toggle("playing", !!on);
 }
 
 function detailsHtml(t){
@@ -362,6 +412,12 @@ function detailsHtml(t){
   }
   .letter-pdf:hover{ border-color:var(--accent); }
 
+  /* ---------- dynamic background ---------- */
+  .bg{ position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+  .bg-layer{ position:absolute; inset:-15%; opacity:0; background-repeat:no-repeat;
+    transition:opacity 1.5s ease, transform 14s ease-out; will-change:opacity, transform; }
+  .bg.playing .bg-layer{ transform:scale(1.07); }
+
   /* ---------- footer ---------- */
   footer{ padding:64px 0 46px; color:var(--muted); font-size:12px; letter-spacing:.08em; }
   footer .ft-line{ border-top:1px solid var(--line); padding-top:18px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
@@ -380,10 +436,16 @@ function detailsHtml(t){
   }
   @media (prefers-reduced-motion: reduce){
     *, *::before, *::after{ transition:none !important; animation:none !important; }
+    .bg.playing .bg-layer{ transform:none; }
   }
 </style>
 </head>
 <body>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-layer" id="bgA"></div>
+  <div class="bg-layer" id="bgB"></div>
+</div>
 
 <div class="wrap">
 
